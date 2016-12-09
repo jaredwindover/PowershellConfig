@@ -1,1 +1,2 @@
 # PowershellConfig
+Current powershell configuration
