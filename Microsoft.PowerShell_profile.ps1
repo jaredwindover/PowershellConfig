@@ -218,4 +218,37 @@ function xunit
 		python C:\Code\deployment\scripts\run_xunit_tests.py --xunit_path C:\Code\externals\xunit2\ --path_to_scan $dir --output $(gci env:temp)
 }
 
+function workon {
+		$h = ${env:VIRTUALENV-HOME}
+		if ($args.count -gt 0) {
+				$ve = $args[0]
+				$path = "$h/$ve/Scripts/activate.ps1"
+				& $path
+		}
+}
+
+if (Test-Path Function:\TabExpansion) {
+    Rename-Item Function:\TabExpansion TabExpansionCustomBackup
+}
+
+function TabExpansion($line, $lastWord) {
+    $lastBlock = [regex]::Split($line, '[|;]')[-1].TrimStart()
+
+    switch -regex ($lastBlock) {
+        # Execute git tab completion for all git-related commands
+        "^$(Get-AliasPattern workon) (.*)" {
+						Get-ChildItem -Path ${env:VIRTUALENV-HOME} -Filter $lastWord* |
+							Select-Object -ExpandProperty BaseName
+				}
+
+        # Fall back on existing tab expansion
+        default {
+						if (Test-Path Function:\TabExpansionCustomBackup) {
+								TabExpansionBackup $line $lastWord
+						}
+				}
+    }
+}
+
+
 Start-SshAgent -Quiet
